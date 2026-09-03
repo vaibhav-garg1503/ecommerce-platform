@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ order.order_number }}</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .addresses { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .summary { margin-top: 20px; text-align: right; }
+        .summary p { margin: 5px 0; }
+        .summary h3 { margin-top: 10px; font-size: 1.2em; }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer;">Print Invoice</button>
+        <a href="{% url 'orders:order_detail' order.order_number %}" style="margin-left: 10px; text-decoration: none; color: #007bff;">Back to Order</a>
+    </div>
+
+    <div class="header">
+        <div>
+            <h2>Django E-Commerce</h2>
+            <p>123 Commerce St.<br>Tech City, TC 12345</p>
+        </div>
+        <div style="text-align: right;">
+            <h1>INVOICE</h1>
+            <p><strong>Order:</strong> {{ order.order_number }}</p>
+            <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+            <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+        </div>
+    </div>
+
+    <div class="addresses">
+        <div>
+            <h3>Bill To:</h3>
+            <p>{{ order.user.email }}</p>
+        </div>
+        <div>
+            <h3>Ship To:</h3>
+            <p>{{ order.shipping_name }}<br>
+               {{ order.shipping_address_line_1 }}<br>
+               {% if order.shipping_address_line_2 %}{{ order.shipping_address_line_2 }}<br>{% endif %}
+               {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_pincode }}<br>
+               {{ order.shipping_country }}
+            </p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product_name }} {% if item.variant_info %}({{ item.variant_info }}){% endif %}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.price_at_purchase }}</td>
+                <td>₹{{ item.line_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <p><strong>Subtotal:</strong> ₹{{ order.subtotal }}</p>
+        <p><strong>Shipping:</strong> ₹{{ order.shipping_cost }}</p>
+        <p><strong>Discount:</strong> -₹{{ order.discount_amount }}</p>
+        <p><strong>Tax:</strong> ₹{{ order.tax_amount }}</p>
+        <h3>Total: ₹{{ order.total }}</h3>
+    </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-4 max-w-md text-center mt-12">
+    <h1 class="text-2xl font-bold mb-4">Confirm COD Order</h1>
+    <p class="mb-6">You have selected Cash on Delivery for Order #{{ order.order_number }}. The total amount to be paid on delivery is ₹{{ order.total }}.</p>
+    <form action="{% url 'payments:cod_place_order' order.order_number %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded font-semibold w-full">Confirm Order</button>
+    </form>
+</div>
+{% endblock %}

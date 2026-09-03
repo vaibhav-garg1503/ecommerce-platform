@@ -1,0 +1,25 @@
+<ul class="search-autocomplete-dropdown">
+    {% for product in products %}
+        <li class="search-result-item">
+            <a href="{% url 'catalog:product_detail' product.slug %}">
+                {% with product.images.first as main_image %}
+                    {% if main_image %}
+                        <img src="{{ main_image.image.url }}" alt="{{ product.name }}" width="40" height="40">
+                    {% else %}
+                        <div class="search-thumb-placeholder" style="width: 40px; height: 40px;"></div>
+                    {% endif %}
+                {% endwith %}
+                <div class="search-result-info">
+                    <span class="search-result-name">{{ product.name }}</span>
+                    {% if product.brand %}
+                        <span class="search-result-brand">{{ product.brand }}</span>
+                    {% endif %}
+                </div>
+            </a>
+        </li>
+    {% empty %}
+        <li class="search-result-item empty">
+            No products found.
+        </li>
+    {% endfor %}
+</ul>

@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Create an Account - STORE{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-lg w-full space-y-8 bg-white p-8 sm:p-10 rounded-2xl shadow-xl border border-gray-100">
+        
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto w-12 h-12 rounded-2xl bg-brand-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-brand-200 mb-4">
+                S
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                Create your account
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Join thousands of shoppers and enjoy seamless checkout & order tracking.
+            </p>
+        </div>
+
+        <!-- Non-field Errors -->
+        {% if form.non_field_errors %}
+            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm space-y-1">
+                {% for error in form.non_field_errors %}
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>{{ error }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Registration Form -->
+        <form method="POST" action="{% url 'accounts:register' %}" class="mt-8 space-y-4" novalidate>
+            {% csrf_token %}
+
+            <!-- Name Fields (Row) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- First Name -->
+                <div>
+                    <label for="id_first_name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
+                        First Name <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" name="first_name" id="id_first_name" required
+                           value="{{ form.first_name.value|default:'' }}"
+                           placeholder="John"
+                           class="w-full px-3.5 py-2.5 bg-gray-50 border {% if form.first_name.errors %}border-rose-300 focus:ring-rose-200 focus:border-rose-500{% else %}border-gray-200 focus:ring-brand-100 focus:border-brand-500{% endif %} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-4 outline-none transition duration-150">
+                    {% if form.first_name.errors %}
+                        <p class="mt-1 text-xs text-rose-600 font-medium">{{ form.first_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label for="id_last_name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
+                        Last Name <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" name="last_name" id="id_last_name" required
+                           value="{{ form.last_name.value|default:'' }}"
+                           placeholder="Doe"
+                           class="w-full px-3.5 py-2.5 bg-gray-50 border {% if form.last_name.errors %}border-rose-300 focus:ring-rose-200 focus:border-rose-500{% else %}border-gray-200 focus:ring-brand-100 focus:border-brand-500{% endif %} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-4 outline-none transition duration-150">
+                    {% if form.last_name.errors %}
+                        <p class="mt-1 text-xs text-rose-600 font-medium">{{ form.last_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Email Address -->
+            <div>
+                <label for="id_email" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
+                    Email Address <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"></path>
+                        </svg>
+                    </div>
+                    <input type="email" name="email" id="id_email" required autocomplete="email"
+                           value="{{ form.email.value|default:'' }}"
+                           placeholder="john.doe@example.com"
+                           class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border {% if form.email.errors %}border-rose-300 focus:ring-rose-200 focus:border-rose-500{% else %}border-gray-200 focus:ring-brand-100 focus:border-brand-500{% endif %} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-4 outline-none transition duration-150">
+                </div>
+                {% if form.email.errors %}
+                    <p class="mt-1 text-xs text-rose-600 font-medium">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+                <label for="id_phone" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
+                    Phone Number
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                    </div>
+                    <input type="tel" name="phone" id="id_phone" autocomplete="tel"
+                           value="{{ form.phone.value|default:'' }}"
+                           placeholder="+91 9876543210"
+                           class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border {% if form.phone.errors %}border-rose-300 focus:ring-rose-200 focus:border-rose-500{% else %}border-gray-200 focus:ring-brand-100 focus:border-brand-500{% endif %} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-4 outline-none transition duration-150">
+                </div>
+                {% if form.phone.errors %}
+                    <p class="mt-1 text-xs text-rose-600 font-medium">{{ form.phone.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="id_password1" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
+                    Password <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <input type="password" name="password1" id="id_password1" required autocomplete="new-password"
+                           placeholder="••••••••"
+                           class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border {% if form.password1.errors %}border-rose-300 focus:ring-rose-200 focus:border-rose-500{% else %}border-gray-200 focus:ring-brand-100 focus:border-brand-500{% endif %} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-4 outline-none transition duration-150">
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Minimum 8 characters with a mix of letters and numbers.</p>
+                {% if form.password1.errors %}
+                    <p class="mt-1 text-xs text-rose-600 font-medium">{{ form.password1.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div>
+                <label for="id_password2" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
+                    Confirm Password <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <input type="password" name="password2" id="id_password2" required autocomplete="new-password"
+                           placeholder="••••••••"
+                           class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border {% if form.password2.errors %}border-rose-300 focus:ring-rose-200 focus:border-rose-500{% else %}border-gray-200 focus:ring-brand-100 focus:border-brand-500{% endif %} rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-4 outline-none transition duration-150">
+                </div>
+                {% if form.password2.errors %}
+                    <p class="mt-1 text-xs text-rose-600 font-medium">{{ form.password2.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Terms & Conditions Checkbox -->
+            <div class="pt-2">
+                <label class="flex items-start cursor-pointer select-none">
+                    <input type="checkbox" required
+                           class="mt-0.5 h-4 w-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded cursor-pointer">
+                    <span class="ml-2.5 text-xs text-gray-600">
+                        I agree to the <a href="#" class="text-brand-600 hover:underline">Terms of Service</a> and <a href="#" class="text-brand-600 hover:underline">Privacy Policy</a>.
+                    </span>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <button type="submit"
+                        class="w-full flex items-center justify-center py-3 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus:ring-4 focus:ring-brand-200 transition duration-150">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                    </svg>
+                    Create Account
+                </button>
+            </div>
+        </form>
+
+        <!-- Footer link -->
+        <div class="mt-6 pt-6 border-t border-gray-100 text-center">
+            <p class="text-sm text-gray-600">
+                Already have an account?
+                <a href="{% url 'accounts:login' %}" class="font-semibold text-brand-600 hover:text-brand-700 hover:underline ml-1">
+                    Sign In
+                </a>
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

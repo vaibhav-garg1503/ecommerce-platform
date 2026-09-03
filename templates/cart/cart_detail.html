@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-8">
+    <h1 class="text-3xl font-bold mb-8">Shopping Cart</h1>
+    
+    {% if items %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column: Cart Items -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white shadow rounded-lg p-6">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="pb-3 text-sm font-medium text-gray-500">Product</th>
+                            <th class="pb-3 text-sm font-medium text-gray-500">Quantity</th>
+                            <th class="pb-3 text-sm font-medium text-gray-500 text-right">Total</th>
+                            <th class="pb-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cart-items">
+                        {% for item in items %}
+                            {% include 'cart/partials/cart_item_row.html' %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Right Column: Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-white shadow rounded-lg p-6 sticky top-4">
+                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span class="font-medium">${{ subtotal|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Estimated Shipping</span>
+                        {% if shipping_estimate == 0 %}
+                            <span class="text-green-600 font-medium">Free</span>
+                        {% else %}
+                            <span class="font-medium">${{ shipping_estimate|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if amount_to_free_shipping > 0 %}
+                        <div class="mt-4 mb-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-500">Add ${{ amount_to_free_shipping|floatformat:2 }} for free shipping</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                {% widthratio subtotal free_shipping_threshold 100 as progress %}
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ progress }}%"></div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="border-t pt-3 mt-3">
+                        <div class="flex justify-between items-center text-lg font-bold">
+                            <span>Grand Total</span>
+                            <span>${{ grand_total|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 space-y-3">
+                    <a href="{% url 'orders:checkout' %}" class="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition">
+                        Proceed to Checkout
+                    </a>
+                    <a href="{% url 'catalog:product_list' %}" class="w-full block text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded transition">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart State -->
+    <div class="bg-white shadow rounded-lg p-12 text-center">
+        <svg class="mx-auto h-24 w-24 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+        <p class="text-gray-500 mb-6">Looks like you haven't added anything to your cart yet.</p>
+        <a href="{% url 'catalog:product_list' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition">
+            Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

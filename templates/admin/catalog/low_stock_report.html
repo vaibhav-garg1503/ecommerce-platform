@@ -1,0 +1,88 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .report-container { margin: 20px; }
+    .table-container { background: white; padding: 20px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .data-table th, .data-table td { border-bottom: 1px solid #ddd; padding: 12px 8px; text-align: left; }
+    .data-table th { font-weight: bold; color: #666; background: #f9f9f9; }
+    .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+    .badge-danger { background: #ffebee; color: #c62828; }
+    .badge-warning { background: #fff3e0; color: #ef6c00; }
+    .btn-add { background: #79aec8; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-add:hover { background: #417690; }
+    .form-inline { display: inline-flex; gap: 10px; align-items: center; }
+    .form-inline input[type="number"] { width: 80px; padding: 4px; }
+    .messages { list-style: none; padding: 0; margin-bottom: 20px; }
+    .messages li { padding: 10px; border-radius: 4px; }
+    .messages .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .messages .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <h2>Low Stock Report</h2>
+    
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'admin:catalog_product_changelist' %}" style="color: #417690; text-decoration: none;">&larr; Back to Product List</a>
+    </div>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="table-container">
+        {% if low_stock_variants %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Size/Color</th>
+                    <th>Current Stock</th>
+                    <th>Threshold</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for variant in low_stock_variants %}
+                <tr>
+                    <td><a href="{% url 'admin:catalog_product_change' variant.product.id %}">{{ variant.product.name }}</a></td>
+                    <td><a href="{% url 'admin:catalog_productvariant_change' variant.id %}">{{ variant.sku }}</a></td>
+                    <td>{{ variant.size|default:"-" }} / {{ variant.color|default:"-" }}</td>
+                    <td><strong>{{ variant.stock_qty }}</strong></td>
+                    <td>{{ variant.low_stock_threshold }}</td>
+                    <td>
+                        {% if variant.stock_qty <= 0 %}
+                            <span class="badge badge-danger">Out of Stock</span>
+                        {% else %}
+                            <span class="badge badge-warning">Low Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" class="form-inline">
+                            {% csrf_token %}
+                            {{ variant.restock_form.variant_id }}
+                            {{ variant.restock_form.add_qty }}
+                            <button type="submit" class="btn-add">Add Stock</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No variants are currently low on stock. Good job!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Order #{{ order.order_number }}</h1>
+        <div class="flex items-center space-x-4">
+            <span class="px-4 py-2 rounded-full font-semibold
+                {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+            <a href="{% url 'orders:order_invoice' order.order_number %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Print Invoice</a>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="mb-8 p-4 bg-gray-50 rounded">
+        <h3 class="font-semibold mb-2">Status Timeline</h3>
+        <p>Ordered: {{ order.created_at|date:"M d, Y H:i" }}</p>
+        <!-- Additional timeline steps can be added based on Shipment model -->
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="w-full md:w-2/3">
+            <h2 class="text-xl font-semibold mb-4">Items</h2>
+            <div class="border rounded divide-y">
+                {% for item in order.items.all %}
+                <div class="p-4 flex justify-between">
+                    <div>
+                        <p class="font-medium">{{ item.product_name }}</p>
+                        {% if item.variant_info %}
+                        <p class="text-sm text-gray-500">{{ item.variant_info }}</p>
+                        {% endif %}
+                        <p class="text-sm text-gray-500">Qty: {{ item.quantity }}</p>
+                    </div>
+                    <div class="font-medium">₹{{ item.line_total }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="w-full md:w-1/3 space-y-6">
+            <div class="border p-4 rounded">
+                <h2 class="text-lg font-semibold mb-2">Summary</h2>
+                <div class="flex justify-between mb-1"><span>Subtotal:</span><span>₹{{ order.subtotal }}</span></div>
+                <div class="flex justify-between mb-1"><span>Shipping:</span><span>₹{{ order.shipping_cost }}</span></div>
+                <div class="flex justify-between mb-1 text-green-600"><span>Discount:</span><span>-₹{{ order.discount_amount }}</span></div>
+                <hr class="my-2">
+                <div class="flex justify-between font-bold text-xl"><span>Total:</span><span>₹{{ order.total }}</span></div>
+            </div>
+            
+            <div class="border p-4 rounded">
+                <h2 class="text-lg font-semibold mb-2">Shipping Details</h2>
+                <p><strong>{{ order.shipping_name }}</strong></p>
+                <p>{{ order.shipping_phone }}</p>
+                <p>{{ order.shipping_address_line_1 }}</p>
+                {% if order.shipping_address_line_2 %}<p>{{ order.shipping_address_line_2 }}</p>{% endif %}
+                <p>{{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}</p>
+                <p>{{ order.shipping_country }}</p>
+                
+                {% if order.shipment %}
+                <hr class="my-2">
+                <h3 class="font-semibold mb-1">Shipment Tracking</h3>
+                <p>Courier: {{ order.shipment.courier }}</p>
+                <p>Tracking: {{ order.shipment.tracking_number }}</p>
+                <p>Status: {{ order.shipment.get_status_display }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="border p-4 rounded">
+                <h2 class="text-lg font-semibold mb-2">Payment Info</h2>
+                {% for payment in order.payments.all %}
+                <p class="text-sm">Gateway: {{ payment.get_gateway_display }}</p>
+                <p class="text-sm">Status: {{ payment.get_status_display }}</p>
+                {% if payment.transaction_id %}<p class="text-sm text-gray-500">Txn ID: {{ payment.transaction_id }}</p>{% endif %}
+                {% empty %}
+                <p class="text-sm">No payment records found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

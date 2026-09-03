@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if current_category_slug %}{{ current_category_slug|title }} — {% endif %}All Products | STORE{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex flex-col md:flex-row gap-8">
+
+    <!-- ░░ FILTER SIDEBAR ░░ -->
+    <aside class="w-full md:w-64 flex-shrink-0">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-24">
+        <h3 class="text-base font-extrabold text-gray-800 mb-5 flex items-center gap-2">
+          <span>🎛️</span> Filters
+        </h3>
+        <form method="get"
+              hx-get="{% if current_category_slug %}{% url 'catalog:category_detail' current_category_slug %}{% else %}{% url 'catalog:product_list' %}{% endif %}"
+              hx-target="#product-grid"
+              hx-swap="outerHTML">
+
+          <!-- Search -->
+          <div class="mb-5">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Search</label>
+            <input type="text" name="q" value="{{ request.GET.q }}"
+                   placeholder="Search products..."
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          </div>
+
+          <!-- Category -->
+          <div class="mb-5">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Category</label>
+            <div class="space-y-1.5">
+              {% for cat in all_categories %}
+              <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:text-indigo-600">
+                <input type="radio" name="category" value="{{ cat.id }}"
+                       {% if request.GET.category == cat.id|stringformat:"s" %}checked{% endif %}
+                       class="accent-indigo-600">
+                {{ cat.name }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Price Range -->
+          <div class="mb-5">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Price Range</label>
+            <div class="flex gap-2">
+              <input type="number" name="min_price" value="{{ request.GET.min_price }}" placeholder="Min"
+                     class="w-1/2 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              <input type="number" name="max_price" value="{{ request.GET.max_price }}" placeholder="Max"
+                     class="w-1/2 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            </div>
+          </div>
+
+          <!-- Size -->
+          {% if all_sizes %}
+          <div class="mb-5">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Size</label>
+            <div class="flex flex-wrap gap-2">
+              {% for size in all_sizes %}
+              <label class="cursor-pointer">
+                <input type="radio" name="size" value="{{ size }}"
+                       {% if request.GET.size == size %}checked{% endif %} class="sr-only peer">
+                <span class="inline-block border border-gray-300 peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:text-white text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-lg hover:border-indigo-400 transition-colors">
+                  {{ size }}
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Color -->
+          {% if all_colors %}
+          <div class="mb-5">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Color</label>
+            <div class="flex flex-wrap gap-2">
+              {% for color in all_colors %}
+              <label class="cursor-pointer" title="{{ color }}">
+                <input type="radio" name="color" value="{{ color }}"
+                       {% if request.GET.color == color %}checked{% endif %} class="sr-only peer">
+                <span class="w-7 h-7 rounded-full border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-400 inline-block transition-all"
+                      style="background-color: {{ color|lower }};"></span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- In Stock -->
+          <div class="mb-6">
+            <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+              <input type="checkbox" name="in_stock" value="true"
+                     {% if request.GET.in_stock == 'true' %}checked{% endif %}
+                     class="accent-indigo-600 w-4 h-4">
+              In Stock Only
+            </label>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-2">
+            <button type="submit"
+                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 rounded-lg transition-colors">
+              Apply
+            </button>
+            <a href="{% if current_category_slug %}{% url 'catalog:category_detail' current_category_slug %}{% else %}{% url 'catalog:product_list' %}{% endif %}"
+               class="flex-1 border border-gray-300 text-gray-600 hover:border-indigo-400 text-sm font-bold py-2 rounded-lg text-center transition-colors">
+              Reset
+            </a>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <!-- ░░ PRODUCT LISTING ░░ -->
+    <main class="flex-1">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-extrabold text-gray-800">
+            {% if current_category_slug %}{{ current_category_slug|title }}{% else %}All Products{% endif %}
+          </h1>
+          <p class="text-sm text-gray-500">{{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}</p>
+        </div>
+        <form method="get"
+              hx-get="{% if current_category_slug %}{% url 'catalog:category_detail' current_category_slug %}{% else %}{% url 'catalog:product_list' %}{% endif %}"
+              hx-target="#product-grid"
+              hx-swap="outerHTML">
+          {% for key, value in request.GET.items %}
+            {% if key != 'sort' %}
+              <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+          {% endfor %}
+          <select name="sort" onchange="this.form.submit()"
+                  class="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+            <option value="">Sort By</option>
+            <option value="price_asc"  {% if request.GET.sort == 'price_asc'  %}selected{% endif %}>Price: Low → High</option>
+            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High → Low</option>
+            <option value="newest"     {% if request.GET.sort == 'newest'     %}selected{% endif %}>Newest</option>
+            <option value="name"       {% if request.GET.sort == 'name'       %}selected{% endif %}>Name A → Z</option>
+          </select>
+        </form>
+      </div>
+
+      <!-- Grid -->
+      {% include "catalog/partials/product_grid.html" %}
+    </main>
+  </div>
+</div>
+{% endblock %}

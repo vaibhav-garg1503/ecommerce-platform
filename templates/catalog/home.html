@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- ░░ HERO BANNERS ░░ -->
+<section class="relative overflow-hidden bg-gray-900">
+  {% if banners %}
+    <!-- Slider wrapper -->
+    <div id="bannerSlider" class="flex transition-transform duration-700 ease-in-out">
+      {% for banner in banners %}
+      <div class="min-w-full relative h-96 md:h-[480px]">
+        {% if banner.image %}
+          <img src="{{ banner.image.url }}" alt="{{ banner.title }}"
+               class="w-full h-full object-cover opacity-70">
+        {% else %}
+          <div class="w-full h-full bg-gradient-to-r from-indigo-700 to-purple-800"></div>
+        {% endif %}
+        <div class="absolute inset-0 flex items-center justify-start px-10 md:px-20">
+          <div class="max-w-xl text-white">
+            <span class="inline-block bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4">
+              New Arrival
+            </span>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-3 drop-shadow-lg">
+              {{ banner.title }}
+            </h1>
+            <p class="text-lg md:text-xl text-gray-200 mb-6 drop-shadow">{{ banner.subtitle }}</p>
+            {% if banner.link %}
+            <a href="{{ banner.link }}"
+               class="inline-block bg-white text-gray-900 font-bold px-8 py-3 rounded-full hover:bg-yellow-400 transition-colors duration-200 shadow-lg">
+              Shop Now &rarr;
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Slider dots -->
+    {% if banners|length > 1 %}
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+      {% for banner in banners %}
+      <button onclick="goToSlide({{ forloop.counter0 }})"
+              class="slider-dot w-3 h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"
+              data-index="{{ forloop.counter0 }}"></button>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  {% else %}
+    <!-- Default hero if no banners -->
+    <div class="h-96 md:h-[480px] bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 flex items-center justify-center text-white text-center px-6">
+      <div>
+        <h1 class="text-5xl font-extrabold mb-4">Welcome to STORE 🛍️</h1>
+        <p class="text-xl text-indigo-100 mb-8">Quality products, fast shipping, secure payments.</p>
+        <a href="{% url 'catalog:product_list' %}"
+           class="bg-white text-indigo-700 font-bold px-8 py-3 rounded-full hover:bg-yellow-400 hover:text-gray-900 transition-colors shadow-lg">
+          Browse All Products
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+<!-- ░░ TRUST BADGES ░░ -->
+<section class="bg-indigo-600 text-white py-4">
+  <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-sm font-semibold">
+    <div class="flex items-center justify-center gap-2 py-1">
+      <span class="text-xl">🚚</span><span>Free Delivery on ₹999+</span>
+    </div>
+    <div class="flex items-center justify-center gap-2 py-1">
+      <span class="text-xl">💯</span><span>100% Original Products</span>
+    </div>
+    <div class="flex items-center justify-center gap-2 py-1">
+      <span class="text-xl">🔒</span><span>Secure Checkout</span>
+    </div>
+    <div class="flex items-center justify-center gap-2 py-1">
+      <span class="text-xl">↩️</span><span>7-Day Easy Returns</span>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ CATEGORIES GRID ░░ -->
+{% if categories %}
+<section class="max-w-7xl mx-auto px-4 py-14">
+  <div class="flex items-center justify-between mb-8">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800">Shop by Category</h2>
+    <a href="{% url 'catalog:product_list' %}" class="text-indigo-600 font-semibold hover:underline text-sm">View All &rarr;</a>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+    {% for category in categories %}
+    <a href="{% url 'catalog:category_detail' category.slug %}"
+       class="group relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer bg-gray-100">
+      <div class="h-44 overflow-hidden">
+        {% if category.image %}
+          <img src="{{ category.image.url }}" alt="{{ category.name }}"
+               class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+        {% else %}
+          <div class="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center text-6xl">
+            {% if category.name == 'Electronics' %}📱
+            {% elif category.name == 'Apparel' %}👕
+            {% elif category.name == 'Footwear' %}👟
+            {% else %}🛍️{% endif %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+      <div class="absolute bottom-0 left-0 right-0 p-4">
+        <h3 class="text-white font-bold text-lg drop-shadow">{{ category.name }}</h3>
+        <span class="text-white/80 text-xs">Explore &rarr;</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ░░ FEATURED PRODUCTS ░░ -->
+{% if featured_products %}
+<section class="bg-gray-50 py-14">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800">⭐ Featured Products</h2>
+      <a href="{% url 'catalog:product_list' %}" class="text-indigo-600 font-semibold hover:underline text-sm">View All &rarr;</a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {% for product in featured_products %}
+      <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col group">
+        <!-- Product Image -->
+        <a href="{% url 'catalog:product_detail' product.slug %}" class="block overflow-hidden h-52 bg-gray-100">
+          {% with product.images.first as main_image %}
+            {% if main_image %}
+              <img src="{{ main_image.image.url }}" alt="{{ product.name }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            {% else %}
+              <div class="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-gray-100 to-gray-200">
+                {% if product.category.name == 'Electronics' %}📱
+                {% elif product.category.name == 'Apparel' %}👕
+                {% elif product.category.name == 'Footwear' %}👟
+                {% else %}🛍️{% endif %}
+              </div>
+            {% endif %}
+          {% endwith %}
+        </a>
+
+        <!-- Product Info -->
+        <div class="p-4 flex flex-col flex-1">
+          <p class="text-xs text-indigo-600 font-semibold uppercase tracking-wider mb-1">
+            {{ product.brand }}
+          </p>
+          <h3 class="font-bold text-gray-800 text-sm leading-snug mb-2 flex-1">
+            <a href="{% url 'catalog:product_detail' product.slug %}" class="hover:text-indigo-600 transition-colors">
+              {{ product.name }}
+            </a>
+          </h3>
+          <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+            <div>
+              {% if product.min_price %}
+              <span class="text-xs text-gray-400">From</span>
+              <span class="text-lg font-extrabold text-gray-900 ml-1">₹{{ product.min_price }}</span>
+              {% endif %}
+            </div>
+            <a href="{% url 'catalog:product_detail' product.slug %}"
+               class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors">
+              View
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ░░ PROMO STRIP ░░ -->
+<section class="bg-gradient-to-r from-yellow-400 to-orange-400 py-12 px-4 text-center">
+  <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+    🔥 Upto 40% Off — Summer Sale!
+  </h2>
+  <p class="text-gray-800 text-lg mb-6">Limited time offer. Shop before it's gone.</p>
+  <a href="{% url 'catalog:product_list' %}"
+     class="inline-block bg-gray-900 text-white font-bold px-10 py-3 rounded-full hover:bg-gray-700 transition-colors shadow-lg">
+    Shop the Sale &rarr;
+  </a>
+</section>
+
+<!-- Banner auto-slider script -->
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('#bannerSlider > div');
+  const dots = document.querySelectorAll('.slider-dot');
+
+  function goToSlide(n) {
+    current = n;
+    document.getElementById('bannerSlider').style.transform = `translateX(-${n * 100}%)`;
+    dots.forEach((d, i) => d.style.opacity = i === n ? '1' : '0.5');
+  }
+
+  if (slides.length > 1) {
+    setInterval(() => goToSlide((current + 1) % slides.length), 4500);
+  }
+</script>
+
+{% endblock %}

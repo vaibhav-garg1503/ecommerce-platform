@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} | STORE{% endblock %}
+{% block meta_description %}{{ product.meta_description|default:product.description|truncatechars:160 }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+    <a href="{% url 'catalog:home' %}" class="hover:text-indigo-600">Home</a>
+    <span>/</span>
+    <a href="{% url 'catalog:product_list' %}" class="hover:text-indigo-600">Shop</a>
+    <span>/</span>
+    <a href="{% url 'catalog:category_detail' product.category.slug %}" class="hover:text-indigo-600">{{ product.category.name }}</a>
+    <span>/</span>
+    <span class="text-gray-700 font-medium">{{ product.name }}</span>
+  </nav>
+
+  <!-- ░░ PRODUCT MAIN SECTION ░░ -->
+  <div class="flex flex-col md:flex-row gap-10">
+
+    <!-- LEFT: Gallery -->
+    <div class="w-full md:w-1/2">
+      <!-- Main Image -->
+      <div class="rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 h-96 md:h-[480px]">
+        {% with product.images.first as main_image %}
+          {% if main_image %}
+            <img src="{{ main_image.image.url }}" alt="{{ product.name }}"
+                 id="main-product-image"
+                 class="w-full h-full object-cover">
+          {% else %}
+            <div class="w-full h-full flex items-center justify-center text-8xl bg-gradient-to-br from-gray-100 to-gray-200">
+              {% if product.category.name == 'Electronics' %}📱
+              {% elif product.category.name == 'Apparel' %}👕
+              {% elif product.category.name == 'Footwear' %}👟
+              {% else %}🛍️{% endif %}
+            </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+      <!-- Thumbnail Strip -->
+      {% if product.images.count > 1 %}
+      <div class="flex gap-3 mt-4 overflow-x-auto pb-1">
+        {% for image in product.images.all %}
+        <button onclick="document.getElementById('main-product-image').src='{{ image.image.url }}'"
+                class="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-indigo-500 transition-colors">
+          <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" class="w-full h-full object-cover">
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- RIGHT: Product Info -->
+    <div class="w-full md:w-1/2 flex flex-col">
+      <!-- Brand + Category badges -->
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+          {{ product.brand }}
+        </span>
+        <span class="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
+          {{ product.category.name }}
+        </span>
+      </div>
+
+      <!-- Product Name -->
+      <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-3">
+        {{ product.name }}
+      </h1>
+
+      <!-- Price Display -->
+      <div class="flex items-baseline gap-3 mb-3" id="price-block">
+        <span class="text-3xl font-extrabold text-gray-900" id="variant-price">
+          ₹{{ default_variant.price }}
+        </span>
+        {% if default_variant.compare_at_price %}
+        <span class="text-lg text-gray-400 line-through" id="variant-compare-price">
+          ₹{{ default_variant.compare_at_price }}
+        </span>
+        <span class="text-sm font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
+          SALE
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Stock Status -->
+      <div class="mb-5" id="stock-status">
+        {% if default_variant.is_in_stock %}
+          {% if default_variant.is_low_stock %}
+            <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
+              <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+              Low Stock — only {{ default_variant.stock_qty }} left!
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-50 px-3 py-1 rounded-full">
+              <span class="w-2 h-2 rounded-full bg-green-500"></span>
+              In Stock
+            </span>
+          {% endif %}
+        {% else %}
+          <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            Out of Stock
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Add to Cart Form -->
+      <form action="{% url 'cart:cart_add' %}" method="post" id="add-to-cart-form">
+        {% csrf_token %}
+        <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ default_variant.id }}">
+
+        <!-- Size Selector -->
+        {% if sizes %}
+        <div class="mb-5">
+          <h4 class="text-sm font-bold text-gray-700 mb-2">Size</h4>
+          <div class="flex flex-wrap gap-2">
+            {% for size in sizes %}
+            <button type="button"
+                    class="size-btn border-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150
+                           {% if default_variant.size == size %}border-indigo-600 bg-indigo-600 text-white{% else %}border-gray-300 text-gray-700 hover:border-indigo-400{% endif %}"
+                    data-size="{{ size }}">
+              {{ size }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Color Selector -->
+        {% if colors %}
+        <div class="mb-5">
+          <h4 class="text-sm font-bold text-gray-700 mb-2">Color</h4>
+          <div class="flex flex-wrap gap-2">
+            {% for color in colors %}
+            <button type="button"
+                    class="color-btn w-9 h-9 rounded-full border-2 transition-all duration-150
+                           {% if default_variant.color == color %}border-indigo-600 ring-2 ring-indigo-400{% else %}border-gray-200 hover:border-indigo-300{% endif %}"
+                    style="background-color: {{ color|lower }};"
+                    title="{{ color }}"
+                    data-color="{{ color }}">
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Quantity -->
+        <div class="mb-6">
+          <h4 class="text-sm font-bold text-gray-700 mb-2">Quantity</h4>
+          <div class="flex items-center gap-0 w-36 border-2 border-gray-200 rounded-xl overflow-hidden">
+            <button type="button" onclick="changeQty(-1)"
+                    class="w-10 h-10 flex items-center justify-center text-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors">
+              −
+            </button>
+            <input type="number" name="quantity" value="1" min="1"
+                   max="{{ default_variant.stock_qty|default:1 }}"
+                   id="quantity-input"
+                   class="w-16 h-10 text-center text-sm font-bold text-gray-900 border-none focus:outline-none">
+            <button type="button" onclick="changeQty(1)"
+                    class="w-10 h-10 flex items-center justify-center text-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors">
+              +
+            </button>
+          </div>
+        </div>
+
+        <!-- Add to Cart + Wishlist Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button type="submit" id="add-to-cart-btn"
+                  {% if not default_variant.is_in_stock %}disabled{% endif %}
+                  class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-colors text-center text-sm shadow-sm">
+            🛒 Add to Cart
+          </button>
+          <button type="button"
+                  class="sm:w-14 h-14 flex items-center justify-center border-2 border-gray-200 hover:border-red-400 hover:text-red-500 rounded-xl transition-colors text-xl text-gray-400">
+            ♡
+          </button>
+        </div>
+      </form>
+
+      <!-- Divider -->
+      <hr class="my-6 border-gray-100">
+
+      <!-- Description -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-700 mb-2">About this product</h3>
+        <p class="text-sm text-gray-600 leading-relaxed">{{ product.description }}</p>
+      </div>
+
+      <!-- Trust Mini-Badges -->
+      <div class="mt-6 grid grid-cols-3 gap-3 text-center">
+        <div class="bg-gray-50 rounded-xl p-3">
+          <div class="text-xl mb-1">🚚</div>
+          <div class="text-xs text-gray-500 font-medium">Free Delivery</div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <div class="text-xl mb-1">↩️</div>
+          <div class="text-xs text-gray-500 font-medium">7-Day Returns</div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <div class="text-xl mb-1">🔒</div>
+          <div class="text-xs text-gray-500 font-medium">Secure Payment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ RELATED PRODUCTS ░░ -->
+  {% if related_products %}
+  <section class="mt-16">
+    <h2 class="text-xl font-extrabold text-gray-800 mb-6">You might also like</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+      {% for related in related_products %}
+      <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-shadow group flex flex-col">
+        <a href="{% url 'catalog:product_detail' related.slug %}" class="block h-44 overflow-hidden bg-gray-50">
+          {% with related.images.first as img %}
+            {% if img %}
+              <img src="{{ img.image.url }}" alt="{{ related.name }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            {% else %}
+              <div class="w-full h-full flex items-center justify-center text-5xl bg-gray-100">🛍️</div>
+            {% endif %}
+          {% endwith %}
+        </a>
+        <div class="p-3 flex flex-col flex-1">
+          <p class="text-xs text-indigo-500 font-semibold mb-0.5">{{ related.brand }}</p>
+          <h3 class="text-sm font-bold text-gray-800 flex-1">
+            <a href="{% url 'catalog:product_detail' related.slug %}" class="hover:text-indigo-600">{{ related.name }}</a>
+          </h3>
+          {% if related.min_price %}
+          <p class="text-sm font-extrabold text-gray-900 mt-2">₹{{ related.min_price }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+
+<!-- JSON-LD Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "image": [{% for image in product.images.all %}"{{ request.scheme }}://{{ request.get_host }}{{ image.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+  "description": "{{ product.description|escapejs }}",
+  "sku": "{{ default_variant.sku }}",
+  "brand": {"@type": "Brand", "name": "{{ product.brand }}"},
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}",
+    "priceCurrency": "INR",
+    "price": "{{ default_variant.price }}",
+    "availability": "https://schema.org/{% if default_variant.is_in_stock %}InStock{% else %}OutOfStock{% endif %}"
+  }
+}
+</script>
+
+<script>
+  const variants = {
+    {% for v in variants %}
+    "{{ v.id }}": {
+      price: "₹{{ v.price }}",
+      compare_at_price: "{% if v.compare_at_price %}₹{{ v.compare_at_price }}{% endif %}",
+      in_stock: {{ v.is_in_stock|yesno:"true,false" }},
+      stock_qty: {{ v.stock_qty }},
+      is_low_stock: {{ v.is_low_stock|yesno:"true,false" }},
+      size: "{{ v.size }}",
+      color: "{{ v.color }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  // Variant picker state
+  let selectedSize = "{{ default_variant.size }}";
+  let selectedColor = "{{ default_variant.color }}";
+
+  function findVariant() {
+    for (const [id, v] of Object.entries(variants)) {
+      if (v.size === selectedSize && v.color === selectedColor) return { id, ...v };
+    }
+    return null;
+  }
+
+  function updateVariantUI(v) {
+    if (!v) return;
+    document.getElementById('selected-variant-id').value = v.id;
+    document.getElementById('variant-price').textContent = v.price;
+    const cmpEl = document.getElementById('variant-compare-price');
+    if (cmpEl) cmpEl.textContent = v.compare_at_price || '';
+    document.getElementById('quantity-input').max = v.stock_qty;
+    const btn = document.getElementById('add-to-cart-btn');
+    btn.disabled = !v.in_stock;
+  }
+
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedSize = btn.dataset.size;
+      document.querySelectorAll('.size-btn').forEach(b => {
+        b.className = b.className.replace(/border-indigo-600 bg-indigo-600 text-white/g, 'border-gray-300 text-gray-700');
+      });
+      btn.classList.remove('border-gray-300', 'text-gray-700');
+      btn.classList.add('border-indigo-600', 'bg-indigo-600', 'text-white');
+      updateVariantUI(findVariant());
+    });
+  });
+
+  document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedColor = btn.dataset.color;
+      document.querySelectorAll('.color-btn').forEach(b => {
+        b.classList.remove('border-indigo-600', 'ring-2', 'ring-indigo-400');
+        b.classList.add('border-gray-200');
+      });
+      btn.classList.add('border-indigo-600', 'ring-2', 'ring-indigo-400');
+      btn.classList.remove('border-gray-200');
+      updateVariantUI(findVariant());
+    });
+  });
+
+  function changeQty(delta) {
+    const input = document.getElementById('quantity-input');
+    const newVal = Math.max(1, Math.min(parseInt(input.max), parseInt(input.value) + delta));
+    input.value = newVal;
+  }
+</script>
+{% endblock %}

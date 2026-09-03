@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Checkout</h1>
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="w-full md:w-2/3">
+            <h2 class="text-xl font-semibold mb-2">Select Address</h2>
+            <form id="checkout-form" method="post" action="{% url 'orders:checkout' %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    {% for address in addresses %}
+                    <div class="border p-4 rounded">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="address_id" value="{{ address.id }}" required class="form-radio">
+                            <span>
+                                <strong>{{ address.full_name }}</strong><br>
+                                {{ address.address_line_1 }}<br>
+                                {{ address.city }}, {{ address.state }} - {{ address.pincode }}
+                            </span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                    <div class="border p-4 rounded">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="new_address" value="true" class="form-radio" id="new-address-radio">
+                            <span>Use a new address</span>
+                        </label>
+                        <div id="new-address-form" class="hidden mt-4 space-y-2">
+                            <input type="text" name="full_name" placeholder="Full Name" class="w-full border p-2">
+                            <input type="text" name="phone" placeholder="Phone" class="w-full border p-2">
+                            <input type="text" name="address_line_1" placeholder="Address Line 1" class="w-full border p-2">
+                            <input type="text" name="address_line_2" placeholder="Address Line 2" class="w-full border p-2">
+                            <input type="text" name="city" placeholder="City" class="w-full border p-2">
+                            <input type="text" name="state" placeholder="State" class="w-full border p-2">
+                            <input type="text" name="pincode" placeholder="Pincode" class="w-full border p-2">
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="coupon_code" id="form_coupon_code" value="">
+                
+                <h2 class="text-xl font-semibold mt-8 mb-2">Payment Method</h2>
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-2">
+                        <input type="radio" name="payment_method" value="razorpay" required checked class="form-radio">
+                        <span>Razorpay (Card / UPI / Netbanking)</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="radio" name="payment_method" value="cod" required class="form-radio">
+                        <span>Cash on Delivery</span>
+                    </label>
+                </div>
+                <button type="submit" class="mt-6 bg-blue-600 text-white px-6 py-2 rounded">Place Order</button>
+            </form>
+        </div>
+        
+        <div class="w-full md:w-1/3">
+            <div class="border p-4 rounded bg-gray-50">
+                <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+                {% for item in cart.items.all %}
+                <div class="flex justify-between mb-2">
+                    <span>{{ item.quantity }}x {{ item.variant.product.name }}</span>
+                    <span>₹{{ item.line_total }}</span>
+                </div>
+                {% endfor %}
+                <hr class="my-4">
+                <div class="flex justify-between mb-2">
+                    <span>Subtotal</span>
+                    <span>₹<span id="summary-subtotal">{{ subtotal }}</span></span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span>Shipping</span>
+                    <span>₹{{ shipping_cost }}</span>
+                </div>
+                <div class="flex justify-between mb-2 text-green-600 hidden" id="discount-row">
+                    <span>Discount</span>
+                    <span>-₹<span id="summary-discount">0.00</span></span>
+                </div>
+                <hr class="my-4">
+                <div class="flex justify-between font-bold text-lg mb-4">
+                    <span>Total</span>
+                    <span>₹<span id="summary-total">{{ total }}</span></span>
+                </div>
+                
+                <div class="flex space-x-2">
+                    <input type="text" id="coupon_input" placeholder="Coupon Code" class="w-full border p-2 rounded">
+                    <button type="button" id="apply_coupon_btn" class="bg-gray-800 text-white px-4 py-2 rounded">Apply</button>
+                </div>
+                <p id="coupon-message" class="text-sm mt-2"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('new-address-radio').addEventListener('change', function() {
+        document.getElementById('new-address-form').classList.remove('hidden');
+    });
+    
+    document.querySelectorAll('input[name="address_id"]').forEach(el => {
+        el.addEventListener('change', function() {
+            document.getElementById('new-address-form').classList.add('hidden');
+        });
+    });
+
+    document.getElementById('apply_coupon_btn').addEventListener('click', function() {
+        const code = document.getElementById('coupon_input').value;
+        const subtotal = parseFloat(document.getElementById('summary-subtotal').innerText);
+        
+        fetch("{% url 'orders:apply_coupon' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ coupon_code: code, subtotal: subtotal })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const msgEl = document.getElementById('coupon-message');
+            if (data.success) {
+                msgEl.innerText = data.message;
+                msgEl.className = 'text-sm mt-2 text-green-600';
+                document.getElementById('form_coupon_code').value = code;
+                
+                document.getElementById('discount-row').classList.remove('hidden');
+                document.getElementById('summary-discount').innerText = data.discount_amount.toFixed(2);
+                
+                const shipping = parseFloat("{{ shipping_cost }}");
+                const newTotal = subtotal + shipping - data.discount_amount;
+                document.getElementById('summary-total').innerText = newTotal.toFixed(2);
+            } else {
+                msgEl.innerText = data.message;
+                msgEl.className = 'text-sm mt-2 text-red-600';
+            }
+        });
+    });
+
+    // Update form action based on payment method
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        // In this implementation checkout view processes cart to order, then redirects to confirm.
+        // Actually we don't need to change action here. Order confirm view handles the rest.
+    });
+</script>
+{% endblock %}
