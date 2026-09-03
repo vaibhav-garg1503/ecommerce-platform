@@ -42,7 +42,7 @@ templates = {
                     </div>
                 </div>
                 <input type="hidden" name="coupon_code" id="form_coupon_code" value="">
-                
+
                 <h2 class="text-xl font-semibold mt-8 mb-2">Payment Method</h2>
                 <div class="space-y-2">
                     <label class="flex items-center space-x-2">
@@ -57,7 +57,7 @@ templates = {
                 <button type="submit" class="mt-6 bg-blue-600 text-white px-6 py-2 rounded">Place Order</button>
             </form>
         </div>
-        
+
         <div class="w-full md:w-1/3">
             <div class="border p-4 rounded bg-gray-50">
                 <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
@@ -85,7 +85,7 @@ templates = {
                     <span>Total</span>
                     <span>₹<span id="summary-total">{{ total }}</span></span>
                 </div>
-                
+
                 <div class="flex space-x-2">
                     <input type="text" id="coupon_input" placeholder="Coupon Code" class="w-full border p-2 rounded">
                     <button type="button" id="apply_coupon_btn" class="bg-gray-800 text-white px-4 py-2 rounded">Apply</button>
@@ -100,7 +100,7 @@ templates = {
     document.getElementById('new-address-radio').addEventListener('change', function() {
         document.getElementById('new-address-form').classList.remove('hidden');
     });
-    
+
     document.querySelectorAll('input[name="address_id"]').forEach(el => {
         el.addEventListener('change', function() {
             document.getElementById('new-address-form').classList.add('hidden');
@@ -110,7 +110,7 @@ templates = {
     document.getElementById('apply_coupon_btn').addEventListener('click', function() {
         const code = document.getElementById('coupon_input').value;
         const subtotal = parseFloat(document.getElementById('summary-subtotal').innerText);
-        
+
         fetch("{% url 'orders:apply_coupon' %}", {
             method: 'POST',
             headers: {
@@ -126,10 +126,10 @@ templates = {
                 msgEl.innerText = data.message;
                 msgEl.className = 'text-sm mt-2 text-green-600';
                 document.getElementById('form_coupon_code').value = code;
-                
+
                 document.getElementById('discount-row').classList.remove('hidden');
                 document.getElementById('summary-discount').innerText = data.discount_amount.toFixed(2);
-                
+
                 const shipping = parseFloat("{{ shipping_cost }}");
                 const newTotal = subtotal + shipping - data.discount_amount;
                 document.getElementById('summary-total').innerText = newTotal.toFixed(2);
@@ -174,7 +174,7 @@ templates = {
             <span>₹{{ order.total }}</span>
         </div>
     </div>
-    
+
     <button id="rzp-button1" class="w-full bg-blue-600 text-white py-3 rounded font-semibold text-lg">Pay Now with Razorpay</button>
     <a href="{% url 'payments:cod_place_order' order.order_number %}" class="block text-center mt-4 text-gray-600 underline">Or Place as Cash on Delivery</a>
 
@@ -287,7 +287,7 @@ document.getElementById('rzp-button1').onclick = function(e){
                 {% endfor %}
             </div>
         </div>
-        
+
         <div class="w-full md:w-1/3 space-y-6">
             <div class="border p-4 rounded">
                 <h2 class="text-lg font-semibold mb-2">Summary</h2>
@@ -297,7 +297,7 @@ document.getElementById('rzp-button1').onclick = function(e){
                 <hr class="my-2">
                 <div class="flex justify-between font-bold text-xl"><span>Total:</span><span>₹{{ order.total }}</span></div>
             </div>
-            
+
             <div class="border p-4 rounded">
                 <h2 class="text-lg font-semibold mb-2">Shipping Details</h2>
                 <p><strong>{{ order.shipping_name }}</strong></p>
@@ -307,7 +307,7 @@ document.getElementById('rzp-button1').onclick = function(e){
                 <p>{{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}</p>
                 <p>{{ order.shipping_country }}</p>
             </div>
-            
+
             <div class="border p-4 rounded">
                 <h2 class="text-lg font-semibold mb-2">Payment Info</h2>
                 {% for payment in order.payments.all %}
